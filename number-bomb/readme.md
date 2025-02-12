@@ -34,13 +34,17 @@ node server.js
 ```
 
 ### 步骤 4：访问游戏
-打开浏览器，访问 `http://localhost:3000/game.html?roomCode=yourRoomCode`（将 `yourRoomCode` 替换为你想要的房间号），即可开始游戏。
+打开浏览器，访问 `http://localhost:3000/`输入房间号，即可开始游戏。多人输入同一个房间号进入同一个房间
 
 ## 文件结构
 ```
 digital-bomb-game/
 ├── public/
-│   └── game.html
+    ├── game.html
+    ├── index.html
+    ├── countdown.mp3
+    ├── explosion.mp3
+    └── select.mp3
 ├── server.js
 ├── package.json
 └── README.md
@@ -59,3 +63,4 @@ digital-bomb-game/
 ## 许可证
 本项目采用 [MIT 许可证](https://opensource.org/licenses/MIT)。
 
+# 本项目由豆包Ai生成。
