@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字炸弹游戏</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background: linear-gradient(to bottom, #f0f5ff, #c2d9ff);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        /* 玩家选择区域样式 */
+        #player-selection {
+            margin-bottom: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #start-game-btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: #ccc;
+            border: none;
+            border-radius: 8px;
+            cursor: not-allowed;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        #start-game-btn.enabled {
+            background-color: #007bff;
+            cursor: pointer;
+        }
+
+        #start-game-btn.enabled:hover {
+            background-color: #0056b3;
+        }
+
+        #player-ready-btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        #player-ready-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 玩家准备状态显示 */
+        #player-status {
+            margin-bottom: 20px;
+        }
+
+        .player-status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .green-dot {
+            background-color: green;
+        }
+
+        .red-dot {
+            background-color: red;
+        }
+
+        /* 游戏面板样式 */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 80px);
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .number {
+            width: 80px;
+            height: 80px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .number:hover {
+            background-color: #218838;
+        }
+
+        .number.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 定时器和当前玩家信息样式 */
+        #timer {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 20px 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        #current-player {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 20px 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        /* 游戏提示样式 */
+        #game-tip {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 粒子爆炸容器样式 */
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #ff0000;
+            animation: explodeParticle 1s ease-out forwards;
+        }
+
+        @keyframes explodeParticle {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        /* 数字放大动画 */
+        @keyframes scaleUp {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(2);
+            }
+        }
+
+        .scale-up {
+            animation: scaleUp 0.5s forwards;
+        }
+
+        /* 适配移动端 */
+        @media (max-width: 600px) {
+            #game-board {
+                grid-template-columns: repeat(5, 60px);
+            }
+
+            .number {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+
+            #player-selection {
+                padding: 20px;
+            }
+
+            #start-game-btn,
+            #player-ready-btn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
+
+            #timer {
+                font-size: 24px;
+                padding: 10px 20px;
+            }
+
+            #current-player {
+                font-size: 20px;
+                padding: 10px 20px;
+            }
+
+            #game-tip {
+                font-size: 18px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="player-selection" style="display: none;">
+        <div id="player-status"></div>
+        <button id="player-ready-btn" onclick="setPlayerReady()">准备</button>
+        <button id="start-game-btn" onclick="startGame()">开始游戏</button>
+    </div>
+    <div id="game-tip">
+        游戏规则：<br>
+        1. 选择玩家数量后开始游戏。<br>
+        2. 游戏中有 1 - 100 个数字，其中一个数字后隐藏着炸弹。<br>
+        3. 每个玩家有 10 秒钟的选择时间。<br>
+        4. 如果未选择或选中炸弹，则当前玩家失败。<br>
+        5. 选择数字后，排除的部分会变成该玩家分配的颜色，且不能再选。
+    </div>
+    <div id="game-board"></div>
+    <div id="timer"></div>
+    <div id="current-player"></div>
+
+    <audio id="select-sound" src="select.mp3"></audio>
+    <audio id="explosion-sound" src="explosion.mp3"></audio>
+    <audio id="countdown-sound" src="countdown.mp3"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomCode = urlParams.get('roomCode');
+        let playerId;
+        let players;
+        let bombNumber;
+        let minNumber = 1;
+        let maxNumber = 100;
+        let currentPlayer = 0;
+        let timer;
+        let timeLeft = 10;
+        let playerColors = [];
+        let countdownAudio = document.getElementById('countdown-sound');
+        let playerReadyStatus = {};
+
+        // 莫奈色系颜色数组
+        const monetColors = [
+            "#F2E6D8", "#D9C1A3", "#A67C52", "#734C26", "#402412",
+            "#E6F2FF", "#B3D9FF", "#80BFFF", "#4DA6FF", "#1A8CFF",
+            "#FFF2CC", "#FFE599", "#FFD66C", "#FFC733", "#FFB800"
+        ];
+
+        // 加入房间
+        socket.emit('join-room', roomCode);
+
+        socket.on('joined-room', (data) => {
+            playerId = data.playerId;
+            players = data.players;
+            playerReadyStatus = data.playerReadyStatus;
+            document.getElementById('player-selection').style.display = 'block';
+            showTip(`你已加入房间，你的角色是玩家 ${playerId}`);
+            updatePlayerStatusDisplay();
+        });
+
+        socket.on('room-full', () => {
+            alert('房间已满，请选择其他房间。');
+        });
+
+        socket.on('player-joined', (data) => {
+            players = data.players;
+            playerReadyStatus = data.playerReadyStatus;
+            showTip(`玩家 ${data.playerId} 已加入房间`);
+            updatePlayerStatusDisplay();
+        });
+
+        socket.on('player-left', (data) => {
+            players = data.players;
+            playerReadyStatus = data.playerReadyStatus;
+            showTip(`有玩家离开房间`);
+            updatePlayerStatusDisplay();
+        });
+
+        socket.on('player - ready - updated', (data) => {
+            playerReadyStatus = data.playerReadyStatus;
+            const allPlayersReady = data.allPlayersReady;
+            updatePlayerStatusDisplay();
+            const startGameBtn = document.getElementById('start-game-btn');
+            if (playerId === 1) {
+                if (allPlayersReady) {
+                    startGameBtn.classList.add('enabled');
+                    startGameBtn.disabled = false;
+                } else {
+                    startGameBtn.classList.remove('enabled');
+                    startGameBtn.disabled = true;
+                    showTip('有玩家未准备，请等待');
+                }
+            }
+        });
+
+        socket.on('start - game - error', (message) => {
+            showTip(message);
+        });
+
+        function setPlayerReady() {
+            socket.emit('player-ready', { roomCode, playerId });
+        }
+
+        function startGame() {
+            socket.emit('start-game', roomCode);
+        }
+
+        socket.on('game-started', (data) => {
+            players = data.players;
+            minNumber = data.minNumber;
+            maxNumber = data.maxNumber;
+            currentPlayer = data.currentPlayer;
+            bombNumber = data.bombNumber;
+            document.getElementById('player-selection').style.display = 'none';
+            showTip('游戏开始！请各位玩家准备。');
+
+            // 重新初始化颜色数组
+            const availableColors = [...monetColors];
+            playerColors = [];
+            for (let i = 0; i < players.length; i++) {
+                const randomIndex = Math.floor(Math.random() * availableColors.length);
+                const color = availableColors.splice(randomIndex, 1)[0];
+                playerColors.push(color);
+            }
+
+            // 创建数字方块
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.classList.add('number');
+                numberDiv.textContent = i;
+                numberDiv.addEventListener('click', () => selectNumber(i));
+                gameBoard.appendChild(numberDiv);
+            }
+
+            // 显示定时器和当前玩家信息
+            document.getElementById('timer').style.display = 'block';
+            document.getElementById('current-player').style.display = 'block';
+
+            // 开始游戏循环
+            startTurn();
+        });
+
+        function startTurn() {
+            if (timer) {
+                clearInterval(timer);
+            }
+            const tip = `轮到玩家 ${players[currentPlayer].id} 选择数字，还有 ${timeLeft} 秒。`;
+            showTip(tip);
+            document.getElementById('current-player').textContent = `当前玩家: 玩家 ${players[currentPlayer].id} (颜色: ${playerColors[currentPlayer]})`;
+            timeLeft = 10;
+            countdownAudio.pause();
+            countdownAudio.currentTime = 0;
+            timer = setInterval(() => {
+                document.getElementById('timer').textContent = `剩余时间: ${timeLeft} 秒`;
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    endGame(`玩家 ${players[currentPlayer].id} 超时，游戏结束！`);
+                } else {
+                    if (timeLeft <= 3) {
+                        if (countdownAudio.paused) {
+                            countdownAudio.play();
+                        }
+                    }
+                    timeLeft--;
+                    showTip(`轮到玩家 ${players[currentPlayer].id} 选择数字，还有 ${timeLeft} 秒。`);
+                }
+            }, 1000);
+        }
+
+        function selectNumber(selectedNumber) {
+            const numberDiv = document.querySelector(`.number:nth-child(${selectedNumber})`);
+            if (numberDiv.classList.contains('disabled')) {
+                showTip('该数字已被排除，请选择其他数字！');
+                return;
+            }
+
+            if (players[currentPlayer].id === playerId) {
+                clearInterval(timer);
+                countdownAudio.pause();
+                countdownAudio.currentTime = 0;
+                playSound('select-sound');
+                socket.emit('select-number', { roomCode, selectedNumber });
+            } else {
+                showTip('当前不是你的回合，请等待。');
+            }
+        }
+
+        // ... 已有代码 ...
+
+        socket.on('number-selected', (data) => {
+            const selectedNumber = data.selectedNumber;
+            minNumber = data.minNumber;
+            maxNumber = data.maxNumber;
+            currentPlayer = data.currentPlayer;
+            const numbersToDisable = data.numbersToDisable;
+
+            const currentColor = playerColors[currentPlayer];
+            numbersToDisable.forEach((number) => {
+                const numberDiv = document.querySelector(`.number:nth-child(${number})`);
+                if (numberDiv &&!numberDiv.classList.contains('disabled')) {
+                    numberDiv.style.backgroundColor = currentColor;
+                    numberDiv.style.cursor = 'not-allowed';
+                    numberDiv.classList.add('disabled');
+                    numberDiv.removeEventListener('click', () => selectNumber(number));
+                }
+            });
+
+            startTurn();
+        });
+
+
+        socket.on('bomb-selected', (data) => {
+            playSound('explosion-sound');
+            const bombDiv = document.querySelector(`.number:nth-child(${bombNumber})`);
+            bombDiv.classList.add('scale-up');
+            setTimeout(() => {
+                triggerParticleExplosion(bombDiv);
+                setTimeout(() => {
+                    // 延迟调用 endGame 函数，确保动画完成
+                    endGame(`玩家 ${data.playerId} 选中炸弹，游戏结束！`);
+                }, 1000); // 等待粒子爆炸动画结束
+                bombDiv.style.display = 'none';
+            }, 500); // 等待放大动画完成
+        });
+
+        function endGame(message) {
+            showTip(message);
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            setTimeout(() => {
+                alert(message);
+                // 发送游戏结束事件到服务器
+                socket.emit('game-ended', roomCode);
+            }, 1000); // 确保爆炸动画结束后再弹窗
+        }
+        socket.on('game-ended', (data) => {
+            playerReadyStatus = data.playerReadyStatus;
+            updatePlayerStatusDisplay();
+            const startGameBtn = document.getElementById('start-game-btn');
+            startGameBtn.classList.remove('enabled');
+            startGameBtn.disabled = true;
+            document.getElementById('player-selection').style.display = 'block';
+            document.getElementById('game-board').innerHTML = '';
+            document.getElementById('timer').style.display = 'none';
+            document.getElementById('current-player').style.display = 'none';
+            showTip('游戏结束，请重新准备');
+        });
+        function showTip(tip) {
+            const tipElement = document.getElementById('game-tip');
+            tipElement.textContent = tip;
+        }
+
+        function playSound(soundId) {
+            const audio = document.getElementById(soundId);
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        function triggerParticleExplosion(target) {
+            const rect = target.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const numParticles = 200;
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const randomX = (Math.random() - 0.5) * 300;
+                const randomY = (Math.random() - 0.5) * 300;
+                particle.style.setProperty('--x', `${randomX}px`);
+                particle.style.setProperty('--y', `${randomY}px`);
+                particle.style.backgroundColor = getRandomColor();
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                document.body.appendChild(particle);
+            }
+
+            setTimeout(() => {
+                const particles = document.querySelectorAll('.particle');
+                particles.forEach(particle => {
+                    particle.remove();
+                });
+            }, 1000);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function updatePlayerStatusDisplay() {
+            const playerStatusDiv = document.getElementById('player-status');
+            playerStatusDiv.innerHTML = '';
+            players.forEach(player => {
+                const dotClass = playerReadyStatus[player.id]? 'green-dot player-status-dot' :'red-dot player-status-dot';
+                const statusText = playerReadyStatus[player.id]? '已准备' : '未准备';
+                const statusElement = document.createElement('span');
+                statusElement.innerHTML = `<span class="${dotClass}"></span>玩家 ${player.id}: ${statusText}`;
+                playerStatusDiv.appendChild(statusElement);
+            });
+        }
+    </script>
+</body>
+
+</html>
