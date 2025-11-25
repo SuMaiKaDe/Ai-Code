@@ -1,0 +1,47 @@
+import axios from 'axios'
+
+// 创建axios实例
+const request = axios.create({
+  baseURL: '/api',
+  timeout: 5000
+})
+
+// 请求拦截器
+request.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  error => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+request.interceptors.response.use(
+  response => {
+    return response.data
+  },
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+// 登录接口
+export const login = (credentials) => {
+  return request.post('/auth/login', credentials)
+}
+
+// 获取用户信息
+export const getUserInfo = () => {
+  return request.get('/auth/profile')
+}
+
+export default request

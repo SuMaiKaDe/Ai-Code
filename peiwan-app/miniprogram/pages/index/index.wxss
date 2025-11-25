@@ -1,0 +1,151 @@
+.container {
+  padding: 0;
+}
+
+/* 轮播图 */
+.banner-swiper {
+  width: 100%;
+  height: 300rpx;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 分类导航 */
+.category-section {
+  background-color: #ffffff;
+  padding: 30rpx 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.category-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.category-icon {
+  font-size: 48rpx;
+  margin-bottom: 10rpx;
+}
+
+.category-name {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+/* 热门商品 */
+.hot-products-section {
+  background-color: #ffffff;
+  padding: 30rpx 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-more {
+  font-size: 24rpx;
+  color: #409eff;
+  display: flex;
+  align-items: center;
+}
+
+.arrow {
+  margin-left: 5rpx;
+}
+
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10rpx;
+}
+
+.product-item {
+  width: 50%;
+  padding: 10rpx;
+  box-sizing: border-box;
+}
+
+.product-image {
+  width: 100%;
+  height: 200rpx;
+  border-radius: 8rpx;
+  margin-bottom: 10rpx;
+}
+
+.product-info {
+  padding: 0 5rpx;
+}
+
+.product-name {
+  font-size: 26rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-price {
+  font-size: 28rpx;
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+/* 最新公告 */
+.announcement-section {
+  background-color: #ffffff;
+  padding: 30rpx 20rpx;
+}
+
+.announcement-list {
+  margin-top: 20rpx;
+}
+
+.announcement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.announcement-item:last-child {
+  border-bottom: none;
+}
+
+.announcement-title {
+  font-size: 28rpx;
+  color: #333333;
+  flex: 1;
+  margin-right: 20rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.announcement-time {
+  font-size: 24rpx;
+  color: #999999;
+}

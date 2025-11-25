@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 轮播图 -->
+  <swiper class="banner-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500">
+    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-banner="{{item}}">
+      <image class="banner-image" src="{{item.image}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 分类导航 -->
+  <view class="category-section">
+    <view class="section-title">游戏分类</view>
+    <view class="category-grid">
+      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="onCategoryTap" data-category="{{item}}">
+        <view class="category-icon">{{item.icon}}</view>
+        <view class="category-name">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热门商品 -->
+  <view class="hot-products-section">
+    <view class="section-header">
+      <view class="section-title">热门商品</view>
+      <view class="section-more" bindtap="onMoreProducts">
+        更多 <text class="arrow">></text>
+      </view>
+    </view>
+    <view class="product-grid">
+      <view class="product-item" wx:for="{{hotProducts}}" wx:key="id" bindtap="onProductTap" data-product="{{item}}">
+        <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-price">¥{{item.price}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最新公告 -->
+  <view class="announcement-section">
+    <view class="section-header">
+      <view class="section-title">最新公告</view>
+      <view class="section-more" bindtap="onMoreAnnouncements">
+        更多 <text class="arrow">></text>
+      </view>
+    </view>
+    <view class="announcement-list">
+      <view class="announcement-item" wx:for="{{announcements}}" wx:key="id" bindtap="onAnnouncementTap" data-announcement="{{item}}">
+        <view class="announcement-title">{{item.title}}</view>
+        <view class="announcement-time">{{item.created_at}}</view>
+      </view>
+    </view>
+  </view>
+</view>

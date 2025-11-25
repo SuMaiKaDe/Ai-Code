@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="login-content">
+    <!-- Logo -->
+    <view class="logo-section">
+      <image class="logo" src="/images/logo.png" mode="aspectFit" />
+      <view class="app-name">陪玩小程序</view>
+      <view class="app-desc">专业游戏陪玩服务平台</view>
+    </view>
+
+    <!-- 登录按钮 -->
+    <view class="login-buttons">
+      <button 
+        class="wx-login-btn {{loading ? 'loading' : ''}}" 
+        bindtap="onWxLogin"
+        disabled="{{loading}}"
+      >
+        <text wx:if="{{!loading}}">微信登录</text>
+        <text wx:else>登录中...</text>
+      </button>
+      
+      <button class="guest-btn" bindtap="onGuestMode">游客模式</button>
+    </view>
+
+    <!-- 服务条款 -->
+    <view class="terms">
+      <text>登录即表示同意</text>
+      <text class="link">《用户协议》</text>
+      <text>和</text>
+      <text class="link">《隐私政策》</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,33 @@
+{
+  "name": "peiwan-backend",
+  "version": "1.0.0",
+  "description": "陪玩小程序后端服务",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "redis": "^4.6.7",
+    "jsonwebtoken": "^9.0.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "multer": "^1.4.5-lts.1",
+    "moment": "^2.29.4",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "keywords": [
+    "peiwan",
+    "game",
+    "陪玩"
+  ],
+  "author": "",
+  "license": "ISC"
+}
