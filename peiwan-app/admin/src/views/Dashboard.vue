@@ -123,6 +123,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { getDashboardData } from '@/api/dashboard'
+import { User, Goods, Document, Money } from '@element-plus/icons-vue'
 
 const stats = ref({
   totalUsers: 0,
@@ -161,46 +163,52 @@ const formatDate = (date) => {
 }
 
 const loadDashboardData = async () => {
-  // TODO: 调用API获取仪表盘数据
-  // 这里使用模拟数据
-  stats.value = {
-    totalUsers: 1234,
-    totalProducts: 45,
-    totalOrders: 678,
-    totalRevenue: '12,345.67'
+  try {
+    const data = await getDashboardData()
+    stats.value = data.stats
+    recentOrders.value = data.recentOrders
+    recentAnnouncements.value = data.recentAnnouncements
+  } catch (error) {
+    // 如果API接口不存在，使用模拟数据
+    stats.value = {
+      totalUsers: 1234,
+      totalProducts: 45,
+      totalOrders: 678,
+      totalRevenue: '12,345.67'
+    }
+
+    recentOrders.value = [
+      {
+        order_no: 'PW1234567890',
+        user_nickname: '用户A',
+        product_name: '王者荣耀陪玩',
+        total_amount: 30.00,
+        status: 'paid'
+      },
+      {
+        order_no: 'PW1234567891',
+        user_nickname: '用户B',
+        product_name: '英雄联盟陪玩',
+        total_amount: 25.00,
+        status: 'completed'
+      }
+    ]
+
+    recentAnnouncements.value = [
+      {
+        title: '欢迎使用陪玩小程序',
+        type: 'normal',
+        status: 1,
+        created_at: '2023-01-01'
+      },
+      {
+        title: '价格调整通知',
+        type: 'important',
+        status: 1,
+        created_at: '2023-01-02'
+      }
+    ]
   }
-
-  recentOrders.value = [
-    {
-      order_no: 'PW1234567890',
-      user_nickname: '用户A',
-      product_name: '王者荣耀陪玩',
-      total_amount: 30.00,
-      status: 'paid'
-    },
-    {
-      order_no: 'PW1234567891',
-      user_nickname: '用户B',
-      product_name: '英雄联盟陪玩',
-      total_amount: 25.00,
-      status: 'completed'
-    }
-  ]
-
-  recentAnnouncements.value = [
-    {
-      title: '欢迎使用陪玩小程序',
-      type: 'normal',
-      status: 1,
-      created_at: '2023-01-01'
-    },
-    {
-      title: '价格调整通知',
-      type: 'important',
-      status: 1,
-      created_at: '2023-01-02'
-    }
-  ]
 }
 
 onMounted(() => {

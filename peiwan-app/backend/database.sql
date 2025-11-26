@@ -1,5 +1,18 @@
 -- 陪玩小程序数据库结构
 
+-- 分类表
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL COMMENT '分类名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '分类描述',
+  `icon` varchar(100) DEFAULT NULL COMMENT '分类图标',
+  `sort_order` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) DEFAULT '1' COMMENT '状态：1启用，0禁用',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表';
+
 -- 用户表
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -96,6 +109,15 @@ CREATE TABLE `admins` (
 -- 插入默认管理员账号（密码：admin123）
 INSERT INTO `admins` (`username`, `password`, `role`) VALUES 
 ('admin', '$2a$10$YKUxjH7KjGKgNhMzGqHqOeLq4vHqGqHqOeLq4vHqGqHqOeLq4vHqG', 'super');
+
+-- 插入示例分类
+INSERT INTO `categories` (`name`, `description`, `icon`, `sort_order`, `status`) VALUES 
+('王者荣耀', '王者荣耀相关服务', 'star', 1, 1),
+('英雄联盟', '英雄联盟相关服务', 'star', 2, 1),
+('和平精英', '和平精英相关服务', 'star', 3, 1),
+('原神', '原神相关服务', 'star', 4, 1),
+('DNF', '地下城与勇士相关服务', 'star', 5, 1),
+('CF', '穿越火线相关服务', 'star', 6, 1);
 
 -- 插入示例商品
 INSERT INTO `products` (`name`, `description`, `price`, `category`, `image`, `status`) VALUES 

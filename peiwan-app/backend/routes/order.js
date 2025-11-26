@@ -70,11 +70,13 @@ router.get('/:orderNo', verifyToken, async (req, res) => {
 
     // 验证订单是否属于当前用户（非管理员）
     if (order.user_id !== req.user.userId) {
-      // TODO: 添加管理员权限检查
-      return res.status(403).json({
-        success: false,
-        message: '无权访问此订单'
-      });
+      // 检查用户是否为管理员
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: '无权访问此订单'
+        });
+      }
     }
 
     res.json({
@@ -93,7 +95,14 @@ router.get('/:orderNo', verifyToken, async (req, res) => {
 // 更新订单状态（管理员接口）
 router.put('/:orderId/status', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可更新订单状态'
+      });
+    }
+    
     const orderId = req.params.orderId;
     const { status } = req.body;
 
@@ -121,7 +130,14 @@ router.put('/:orderId/status', verifyToken, async (req, res) => {
 // 获取所有订单（管理员接口）
 router.get('/admin/list', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可查看所有订单'
+      });
+    }
+    
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || null;

@@ -96,12 +96,23 @@ class Product {
 
   // 获取商品分类
   static async getCategories() {
-    const sql = 'SELECT DISTINCT category FROM products ORDER BY category';
+    const sql = 'SELECT id, name as category FROM categories WHERE status = 1 ORDER BY sort_order ASC';
     try {
       const [rows] = await pool.execute(sql);
       return rows.map(row => row.category);
     } catch (error) {
       throw new Error('获取分类失败: ' + error.message);
+    }
+  }
+  
+  // 根据分类ID获取分类名称
+  static async getCategoryNameById(categoryId) {
+    const sql = 'SELECT name FROM categories WHERE id = ? AND status = 1';
+    try {
+      const [rows] = await pool.execute(sql, [categoryId]);
+      return rows.length > 0 ? rows[0].name : null;
+    } catch (error) {
+      throw new Error('获取分类名称失败: ' + error.message);
     }
   }
 }

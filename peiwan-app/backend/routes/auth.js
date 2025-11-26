@@ -17,17 +17,28 @@ router.post('/wxlogin', async (req, res) => {
       });
     }
 
-    // TODO: 调用微信API获取openid和session_key
-    // 这里暂时使用模拟数据，实际需要调用微信接口
-    const mockOpenid = 'mock_openid_' + Date.now();
+    // 调用微信API获取openid和session_key
+    const wxLoginUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${process.env.WX_MINI_APPID}&secret=${process.env.WX_MINI_SECRET}&js_code=${code}&grant_type=authorization_code`;
+    
+    const response = await fetch(wxLoginUrl);
+    const wxData = await response.json();
+    
+    if (!wxData.openid) {
+      return res.status(400).json({
+        success: false,
+        message: '微信登录失败: ' + wxData.errmsg
+      });
+    }
+    
+    const openid = wxData.openid;
     
     // 查找或创建用户
-    let user = await User.findByOpenid(mockOpenid);
+    let user = await User.findByOpenid(openid);
     
     if (!user) {
       // 创建新用户
       const userId = await User.create({
-        openid: mockOpenid,
+        openid: openid,
         nickname: userInfo?.nickName || '微信用户',
         avatar: userInfo?.avatarUrl || ''
       });
@@ -73,7 +84,7 @@ router.post('/wxlogin', async (req, res) => {
 });
 
 // 验证token中间件
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
@@ -86,6 +97,24 @@ const verifyToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    
+    // 检查是否为管理员
+    if (req.path.startsWith('/api/products') || req.path.startsWith('/api/orders') || 
+        req.path.startsWith('/api/users') || req.path.startsWith('/api/announcements')) {
+      // 对于管理接口，需要验证管理员身份
+      const adminSql = 'SELECT id, username, role FROM admins WHERE id = ? AND status = 1';
+      const [adminRows] = await require('../config/database').pool.execute(adminSql, [decoded.userId]);
+      
+      if (adminRows.length > 0) {
+        req.user.role = adminRows[0].role;
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: '权限不足，仅管理员可访问'
+        });
+      }
+    }
+    
     next();
   } catch (error) {
     return res.status(401).json({

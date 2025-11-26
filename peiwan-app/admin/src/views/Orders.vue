@@ -150,6 +150,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getOrderList, confirmOrderCompletion, cancelOrderAPI, refundOrderAPI } from '@/api/order'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const detailVisible = ref(false)
@@ -197,42 +199,16 @@ const formatDateTime = (date) => {
 const loadOrders = async () => {
   loading.value = true
   try {
-    // TODO: 调用API获取订单列表
-    // 这里使用模拟数据
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    orders.value = [
-      {
-        id: 1,
-        order_no: 'PW1234567890',
-        user_nickname: '用户A',
-        product_name: '王者荣耀陪玩',
-        total_amount: 30.00,
-        contact_info: '13800138000',
-        game_account: '玩家123',
-        payment_method: 'wxpay',
-        transaction_id: 'wx1234567890',
-        status: 'paid',
-        paid_at: '2023-01-01T10:30:00Z',
-        created_at: '2023-01-01T10:00:00Z'
-      },
-      {
-        id: 2,
-        order_no: 'PW1234567891',
-        user_nickname: '用户B',
-        product_name: '英雄联盟陪玩',
-        total_amount: 25.00,
-        contact_info: '13900139000',
-        game_account: '玩家456',
-        payment_method: null,
-        transaction_id: null,
-        status: 'pending',
-        paid_at: null,
-        created_at: '2023-01-02T10:00:00Z'
-      }
-    ]
-    
-    pagination.total = 678
+    const params = {
+      page: pagination.page,
+      limit: pagination.limit,
+      orderNo: searchForm.orderNo,
+      user: searchForm.user,
+      status: searchForm.status
+    }
+    const response = await getOrderList(params)
+    orders.value = response.orders
+    pagination.total = response.pagination.total
   } catch (error) {
     ElMessage.error('获取订单列表失败')
   } finally {
@@ -276,9 +252,7 @@ const confirmOrder = async (order) => {
       type: 'warning'
     })
 
-    // TODO: 调用API确认订单完成
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await confirmOrderCompletion(order.id)
     ElMessage.success('订单已完成')
     loadOrders()
   } catch {
@@ -294,9 +268,7 @@ const cancelOrder = async (order) => {
       type: 'warning'
     })
 
-    // TODO: 调用API取消订单
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await cancelOrderAPI(order.id)
     ElMessage.success('订单已取消')
     loadOrders()
   } catch {
@@ -312,9 +284,7 @@ const refundOrder = async (order) => {
       type: 'warning'
     })
 
-    // TODO: 调用API退款订单
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await refundOrderAPI(order.id)
     ElMessage.success('退款已处理')
     loadOrders()
   } catch {

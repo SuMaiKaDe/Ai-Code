@@ -206,6 +206,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getUserList, adjustUserPoints, updateUserLevel } from '@/api/user'
+import { User, ArrowDown } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -244,36 +246,15 @@ const formatDateTime = (date) => {
 const loadUsers = async () => {
   loading.value = true
   try {
-    // TODO: 调用API获取用户列表
-    // 这里使用模拟数据
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    users.value = [
-      {
-        id: 1,
-        nickname: '玩家一号',
-        avatar: 'https://example.com/avatar1.jpg',
-        phone: '13800138000',
-        level: 3,
-        points: 1500,
-        order_count: 25,
-        total_amount: 750.00,
-        created_at: '2023-01-01T10:00:00Z'
-      },
-      {
-        id: 2,
-        nickname: '游戏达人',
-        avatar: 'https://example.com/avatar2.jpg',
-        phone: '13900139000',
-        level: 5,
-        points: 3000,
-        order_count: 50,
-        total_amount: 1500.00,
-        created_at: '2023-01-02T10:00:00Z'
-      }
-    ]
-    
-    pagination.total = 1234
+    const params = {
+      page: pagination.page,
+      limit: pagination.limit,
+      nickname: searchForm.nickname,
+      level: searchForm.level
+    }
+    const response = await getUserList(params)
+    users.value = response.users
+    pagination.total = response.pagination.total
   } catch (error) {
     ElMessage.error('获取用户列表失败')
   } finally {
@@ -320,9 +301,17 @@ const savePoints = async () => {
 
   saving.value = true
   try {
-    // TODO: 调用API调整用户积分
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    let pointsValue = pointsForm.value
+    if (pointsForm.type === 'subtract') {
+      pointsValue = -pointsValue
+    }
+
+    const data = {
+      points: pointsValue,
+      description: pointsForm.reason || `管理员调整积分(${pointsForm.type})`
+    }
+
+    await adjustUserPoints(currentUser.value.id, data)
     ElMessage.success('积分调整成功')
     pointsVisible.value = false
     loadUsers()
@@ -341,9 +330,11 @@ const saveLevel = async () => {
 
   saving.value = true
   try {
-    // TODO: 调用API调整用户等级
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    const data = {
+      level: levelForm.level
+    }
+
+    await updateUserLevel(currentUser.value.id, data)
     ElMessage.success('等级调整成功')
     levelVisible.value = false
     loadUsers()

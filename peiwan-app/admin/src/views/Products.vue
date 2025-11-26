@@ -190,37 +190,21 @@ const rules = {
   ]
 }
 
+import { getProductList, createProduct, updateProduct, deleteProductById, updateProductStatus } from '@/api/product'
+
 const loadProducts = async () => {
   loading.value = true
   try {
-    // TODO: 调用API获取商品列表
-    // 这里使用模拟数据
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    products.value = [
-      {
-        id: 1,
-        name: '王者荣耀陪玩',
-        description: '专业陪玩师带你上分，段位钻石以上',
-        price: 30.00,
-        category: '王者荣耀',
-        image: 'https://example.com/wzry.jpg',
-        status: 1,
-        created_at: '2023-01-01T10:00:00Z'
-      },
-      {
-        id: 2,
-        name: '英雄联盟陪玩',
-        description: '高分段大神陪玩，快速提升技术',
-        price: 25.00,
-        category: '英雄联盟',
-        image: 'https://example.com/lol.jpg',
-        status: 1,
-        created_at: '2023-01-02T10:00:00Z'
-      }
-    ]
-    
-    pagination.total = 45
+    const params = {
+      page: pagination.page,
+      limit: pagination.limit,
+      name: searchForm.name,
+      category: searchForm.category,
+      status: searchForm.status
+    }
+    const response = await getProductList(params)
+    products.value = response.products
+    pagination.total = response.pagination.total
   } catch (error) {
     ElMessage.error('获取商品列表失败')
   } finally {
@@ -267,10 +251,13 @@ const saveProduct = async () => {
 
   saving.value = true
   try {
-    // TODO: 调用API保存商品
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    ElMessage.success(productForm.id ? '商品更新成功' : '商品添加成功')
+    if (productForm.id) {
+      await updateProduct(productForm.id, productForm)
+      ElMessage.success('商品更新成功')
+    } else {
+      await createProduct(productForm)
+      ElMessage.success('商品添加成功')
+    }
     dialogVisible.value = false
     loadProducts()
   } catch (error) {
@@ -282,9 +269,7 @@ const saveProduct = async () => {
 
 const toggleStatus = async (product) => {
   try {
-    // TODO: 调用API更新商品状态
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await updateProductStatus(product.id, product.status ? 0 : 1)
     ElMessage.success(`商品已${product.status ? '下架' : '上架'}`)
     loadProducts()
   } catch (error) {
@@ -300,9 +285,7 @@ const deleteProduct = async (product) => {
       type: 'warning'
     })
 
-    // TODO: 调用API删除商品
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await deleteProductById(product.id)
     ElMessage.success('商品删除成功')
     loadProducts()
   } catch {

@@ -80,7 +80,14 @@ router.get('/categories/list', async (req, res) => {
 // 创建商品（需要管理员权限）
 router.post('/', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可创建商品'
+      });
+    }
+    
     const productData = req.body;
     const productId = await Product.create(productData);
 
@@ -101,7 +108,14 @@ router.post('/', verifyToken, async (req, res) => {
 // 更新商品（需要管理员权限）
 router.put('/:id', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可更新商品'
+      });
+    }
+    
     const productId = req.params.id;
     const productData = req.body;
 
@@ -129,7 +143,14 @@ router.put('/:id', verifyToken, async (req, res) => {
 // 删除商品（需要管理员权限）
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可删除商品'
+      });
+    }
+    
     const productId = req.params.id;
 
     const deleted = await Product.delete(productId);

@@ -44,6 +44,12 @@ const routes = [
         name: 'Users',
         component: () => import('../views/Users.vue'),
         meta: { title: '用户管理' }
+      },
+      {
+        path: '/categories',
+        name: 'Categories',
+        component: () => import('../views/Categories.vue'),
+        meta: { title: '分类管理' }
       }
     ]
   }

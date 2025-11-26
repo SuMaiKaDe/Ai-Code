@@ -134,6 +134,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getAnnouncementList, createAnnouncement, updateAnnouncement, deleteAnnouncementById, updateAnnouncementStatus } from '@/api/announcement'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -174,30 +175,16 @@ const rules = {
 const loadAnnouncements = async () => {
   loading.value = true
   try {
-    // TODO: 调用API获取公告列表
-    // 这里使用模拟数据
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    announcements.value = [
-      {
-        id: 1,
-        title: '欢迎使用陪玩小程序',
-        content: '感谢您使用我们的陪玩服务，如有问题请联系客服',
-        type: 'normal',
-        status: 1,
-        created_at: '2023-01-01T10:00:00Z'
-      },
-      {
-        id: 2,
-        title: '价格调整通知',
-        content: '由于市场变化，部分陪玩服务价格有所调整',
-        type: 'important',
-        status: 1,
-        created_at: '2023-01-02T10:00:00Z'
-      }
-    ]
-    
-    pagination.total = 12
+    const params = {
+      page: pagination.page,
+      limit: pagination.limit,
+      title: searchForm.title,
+      type: searchForm.type,
+      status: searchForm.status
+    }
+    const response = await getAnnouncementList(params)
+    announcements.value = response.announcements
+    pagination.total = response.pagination.total
   } catch (error) {
     ElMessage.error('获取公告列表失败')
   } finally {
@@ -242,10 +229,13 @@ const saveAnnouncement = async () => {
 
   saving.value = true
   try {
-    // TODO: 调用API保存公告
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    ElMessage.success(announcementForm.id ? '公告更新成功' : '公告添加成功')
+    if (announcementForm.id) {
+      await updateAnnouncement(announcementForm.id, announcementForm)
+      ElMessage.success('公告更新成功')
+    } else {
+      await createAnnouncement(announcementForm)
+      ElMessage.success('公告添加成功')
+    }
     dialogVisible.value = false
     loadAnnouncements()
   } catch (error) {
@@ -257,9 +247,7 @@ const saveAnnouncement = async () => {
 
 const toggleStatus = async (announcement) => {
   try {
-    // TODO: 调用API更新公告状态
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await updateAnnouncementStatus(announcement.id, announcement.status ? 0 : 1)
     ElMessage.success(`公告已${announcement.status ? '隐藏' : '显示'}`)
     loadAnnouncements()
   } catch (error) {
@@ -275,9 +263,7 @@ const deleteAnnouncement = async (announcement) => {
       type: 'warning'
     })
 
-    // TODO: 调用API删除公告
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await deleteAnnouncementById(announcement.id)
     ElMessage.success('公告删除成功')
     loadAnnouncements()
   } catch {

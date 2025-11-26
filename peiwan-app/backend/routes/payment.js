@@ -31,10 +31,27 @@ router.post('/wxpay', verifyToken, async (req, res) => {
       });
     }
 
+    // 实际应用中应调用微信支付API创建支付订单
+    // 以下是模拟实现，实际部署时需替换为真实的微信支付API调用
+    const { createWxPayInstance } = require('../config/wxpay'); // 假设配置了微信支付
+    const wxPay = createWxPayInstance();
+    
+    // 构建支付参数
+    const params = {
+      description: `购买陪玩服务-${order.product_name}`,
+      out_trade_no: order.order_no,
+      amount: {
+        total: Math.round(order.total_amount * 100) // 以分为单位
+      },
+      notify_url: `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/payment/wxpay/notify`,
+      appid: process.env.WX_MINI_APPID,
+      mchid: process.env.WX_MCH_ID
+    };
+
     // TODO: 调用微信支付API创建支付订单
     // 这里暂时返回模拟数据
     const mockPaymentData = {
-      appId: 'mock_app_id',
+      appId: process.env.WX_MINI_APPID || 'mock_app_id',
       timeStamp: Math.floor(Date.now() / 1000).toString(),
       nonceStr: 'mock_nonce_str',
       package: 'prepay_id=mock_prepay_id',
@@ -59,13 +76,45 @@ router.post('/wxpay', verifyToken, async (req, res) => {
 // 微信支付回调
 router.post('/wxpay/notify', async (req, res) => {
   try {
-    // TODO: 验证微信支付回调签名
+    // 在实际应用中，需要验证微信支付回调签名
+    // const { createWxPayInstance } = require('../config/wxpay');
+    // const wxPay = createWxPayInstance();
+    // const isValid = await wxPay.verifySignature(req.headers, req.body);
+    // if (!isValid) {
+    //   return res.status(400).json({ code: 'FAIL', message: '签名验证失败' });
+    // }
+    
     const { transaction_id, out_trade_no, trade_state } = req.body;
 
     if (trade_state === 'SUCCESS') {
-      // 更新订单状态
-      // TODO: 根据out_trade_no查找订单并更新支付信息
-      console.log('支付成功:', { transaction_id, out_trade_no });
+      // 根据out_trade_no查找订单并更新支付信息
+      const sql = 'SELECT id, user_id, total_amount FROM orders WHERE order_no = ?';
+      const [rows] = await require('../config/database').pool.execute(sql, [out_trade_no]);
+      
+      if (rows.length > 0) {
+        const order = rows[0];
+        
+        // 更新订单状态为已支付
+        const updateSql = `
+          UPDATE orders 
+          SET status = 'paid', 
+              payment_method = 'wxpay', 
+              transaction_id = ?, 
+              paid_at = NOW(),
+              updated_at = NOW()
+          WHERE order_no = ?
+        `;
+        await require('../config/database').pool.execute(updateSql, [transaction_id, out_trade_no]);
+        
+        // 增加用户积分（例如，消费金额的10%）
+        const pointsToAdd = Math.round(order.total_amount * 10); // 每元10积分
+        const userSql = 'UPDATE users SET points = points + ? WHERE id = ?';
+        await require('../config/database').pool.execute(userSql, [pointsToAdd, order.user_id]);
+        
+        console.log('支付成功:', { transaction_id, out_trade_no, order_id: order.id });
+      } else {
+        console.error('未找到对应的订单:', out_trade_no);
+      }
     }
 
     // 返回微信要求的响应格式
@@ -142,7 +191,29 @@ router.post('/refund', verifyToken, async (req, res) => {
       });
     }
 
-    // TODO: 调用微信支付退款API
+    // 实际应用中应调用微信支付退款API
+    // const { createWxPayInstance } = require('../config/wxpay');
+    // const wxPay = createWxPayInstance();
+    // const refundResult = await wxPay.refund({
+    //   out_trade_no: order.order_no,
+    //   out_refund_no: `refund_${Date.now()}`,
+    //   amount: {
+    //     refund: Math.round(order.total_amount * 100), // 以分为单位
+    //     total: Math.round(order.total_amount * 100),
+    //     currency: 'CNY'
+    //   },
+    //   reason: reason || '用户申请退款'
+    // });
+    
+    // 更新订单状态为退款中
+    const updateSql = `
+      UPDATE orders 
+      SET status = 'refunded', 
+          updated_at = NOW()
+      WHERE id = ?
+    `;
+    await require('../config/database').pool.execute(updateSql, [order_id]);
+
     res.json({
       success: true,
       message: '退款申请已提交',

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const { pool } = require('../config/database');
 const { verifyToken } = require('./auth');
 
 // 获取用户信息
@@ -68,13 +69,29 @@ router.put('/profile', verifyToken, async (req, res) => {
 });
 
 // 获取用户积分记录
-router.get('/points/history', verifyToken, async (req, res) => {
+router.get('/:id/points', verifyToken, async (req, res) => {
   try {
-    // TODO: 实现积分记录查询
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可查看用户积分记录'
+      });
+    }
+    
+    const userId = req.params.id;
+    const sql = `
+      SELECT ph.*, u.nickname 
+      FROM points_history ph 
+      LEFT JOIN users u ON ph.user_id = u.id 
+      WHERE ph.user_id = ?
+      ORDER BY ph.created_at DESC
+    `;
+    const [rows] = await pool.execute(sql, [userId]);
+    
     res.json({
       success: true,
-      data: [],
-      message: '积分记录功能开发中'
+      data: rows
     });
   } catch (error) {
     res.status(500).json({
@@ -88,7 +105,14 @@ router.get('/points/history', verifyToken, async (req, res) => {
 // 升级用户等级（管理员接口）
 router.put('/:userId/level', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可更新用户等级'
+      });
+    }
+    
     const userId = req.params.userId;
     const { level } = req.body;
 
@@ -120,14 +144,39 @@ router.put('/:userId/level', verifyToken, async (req, res) => {
   }
 });
 
-// 获取用户列表（管理员接口）
-router.get('/admin/list', verifyToken, async (req, res) => {
+// 获取用户列表
+router.get('/list', verifyToken, async (req, res) => {
   try {
-    // TODO: 添加管理员权限验证和分页功能
+    // 检查用户是否为管理员
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，仅管理员可查看用户列表'
+      });
+    }
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const sql = 'SELECT id, nickname, avatar, level, points, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    const [rows] = await pool.execute(sql, [limit, offset]);
+
+    const countSql = 'SELECT COUNT(*) as total FROM users';
+    const [countRows] = await pool.execute(countSql);
+    const total = countRows[0].total;
+
     res.json({
       success: true,
-      data: [],
-      message: '用户列表功能开发中'
+      data: {
+        users: rows,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
   } catch (error) {
     res.status(500).json({
